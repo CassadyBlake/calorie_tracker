@@ -5,7 +5,7 @@ const StorageCtrl = (function(){
         storeItem: function(item) {
             let items
             // Check if any items in local storage
-            if(localStorage.getItem('items') === null) {
+            if(!localStorage.getItem('items')) {
                 // add first item to list
                 items = []
                 // push new item
@@ -21,14 +21,39 @@ const StorageCtrl = (function(){
         },
         getItemsFromStorage: function() {
             let items
-
-            if(localStorage.getItem('items') === null) {
+            if(!localStorage.getItem('items')) {
                 items = []
             } else {
                 items = JSON.parse(localStorage.getItem('items'))
             }
 
             return items
+        },
+        updateItemStorage: function(updatedItem) {
+            let items = JSON.parse(localStorage.getItem('items'))
+
+            items.forEach( (item, index) => {
+                if(updatedItem.id === item.id) {
+                    items.splice(index, 1, updatedItem)
+                }
+            })
+
+            localStorage.setItem('items', JSON.stringify(items))
+        },
+        deleteItemFromStorage: function(id) {
+            let items = JSON.parse(localStorage.getItem('items'))
+
+            items.forEach( (item, index) => {
+                if(id === item.id) {
+                    items.splice(index, 1)
+                }
+            })
+
+            localStorage.setItem('items', JSON.stringify(items))
+        },
+        removeAllItemsFromStorage: function() {
+            // localStorage.setItem('items', '')
+            localStorage.removeItem('items')
         }
     }
 })()
@@ -375,6 +400,9 @@ const AppCtrl = (function(ItemCtrl, UICtrl, StorageCtrl){
         // Add total calories to UI
         UICtrl.showTotalCalories(totalCalories)
 
+        // Update to local storage
+        StorageCtrl.updateItemStorage(updatedItem)
+
         UICtrl.clearEditState()
 
         e.preventDefault()
@@ -395,6 +423,9 @@ const AppCtrl = (function(ItemCtrl, UICtrl, StorageCtrl){
 
         // Add total calories to UI
         UICtrl.showTotalCalories(totalCalories)
+
+        // Delete from local storage
+        StorageCtrl.deleteItemFromStorage(currentItem.id)
 
         UICtrl.clearEditState()
 
@@ -422,6 +453,9 @@ const AppCtrl = (function(ItemCtrl, UICtrl, StorageCtrl){
 
         // Remove all items from UI
         UICtrl.removeItemList()
+
+        // Remove all items from storage
+        StorageCtrl.removeAllItemsFromStorage()
 
         // Hide UL
         UICtrl.hideList()
