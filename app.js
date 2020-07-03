@@ -71,6 +71,21 @@ const ItemCtrl = (function(){
 
             return found
         },
+        deleteItem: function(id) {
+            // Get Ids
+            ids = data.items.map( item => {
+                return item.id
+            })
+
+            // Get index
+            const index = ids.indexOf(id)
+
+            // Remove Item
+            data.items.splice(index, 1)
+        },
+        clearAllItems: function() {
+            data.items = []
+        },
         setCurrentItem: function(item) {
             data.currentItem = item
         },
@@ -105,7 +120,8 @@ const UICtrl = (function(){
         totalCalories: '.total-calories',
         updateBtn: '.update-btn',
         deleteBtn: '.delete-btn',
-        backBtn: '.back-btn'
+        backBtn: '.back-btn',
+        clearBtn: '.clear-btn'
     }
 
     // Public Methods
@@ -170,6 +186,21 @@ const UICtrl = (function(){
                 }
             })
         },
+        deleteListItem: function(id) {
+            const itemId = `#item-${id}`
+            const item = document.querySelector(itemId)
+            item.remove()
+        },
+        removeItemList: function() {
+            let listItems = document.querySelectorAll(UISelectors.listItems)
+
+            // Turn Node list into array
+            listItems = Array.from(listItems)
+
+            listItems.forEach( item => {
+                item.remove()
+            })
+        },
         clearInputs: function() {
             document.querySelector(UISelectors.itemNameInput).value = ''
             document.querySelector(UISelectors.itemCaloriesInput).value = ''
@@ -215,18 +246,27 @@ const AppCtrl = (function(ItemCtrl, UICtrl){
         document.querySelector(UISelectors.addBtn).addEventListener('click', itemAddSubmit)
 
         // Disable submit on enter
-    document.addEventListener('keypress', function(e) {
-        if(e.keyCode === 13 || e.which === 13) {
-            e.preventDefault()
-            return false
-        }
-    })
+        document.addEventListener('keypress', function(e) {
+            if(e.keyCode === 13 || e.which === 13) {
+                e.preventDefault()
+                return false
+            }
+        })
 
         // Edit Icon click event
         document.querySelector(UISelectors.itemList).addEventListener('click', itemEditClick)
 
         // Update Item event
         document.querySelector(UISelectors.updateBtn).addEventListener('click', itemUpdateSubmit)
+
+        // Delete Item event
+        document.querySelector(UISelectors.deleteBtn).addEventListener('click', itemDeleteSubmit)
+
+        // Back button event
+        document.querySelector(UISelectors.backBtn).addEventListener('click', cancelItemUpdateClick)
+
+        // Clear All button event
+        document.querySelector(UISelectors.clearBtn).addEventListener('click', clearAllItemsClick)
 
     }
 
@@ -299,6 +339,56 @@ const AppCtrl = (function(ItemCtrl, UICtrl){
         UICtrl.showTotalCalories(totalCalories)
 
         UICtrl.clearEditState()
+
+        e.preventDefault()
+    }
+
+    const itemDeleteSubmit = function(e) {
+        // Get current item
+        const currentItem = ItemCtrl.getCurrentItem()
+
+        // Delete from data structure
+        ItemCtrl.deleteItem(currentItem.id)
+
+        // Delete from UI
+        UICtrl.deleteListItem(currentItem.id)
+
+        // Get total calories
+        const totalCalories = ItemCtrl.getTotalCalories()
+
+        // Add total calories to UI
+        UICtrl.showTotalCalories(totalCalories)
+
+        UICtrl.clearEditState()
+
+        e.preventDefault()
+    }
+
+    const cancelItemUpdateClick = function(e) {
+        UICtrl.clearEditState()
+
+        e.preventDefault()
+    }
+
+    const clearAllItemsClick = function(e) {
+        // Delete all items from data
+        ItemCtrl.clearAllItems()
+
+        // Remove all items from UI
+        UICtrl.removeItemList()
+
+        // Get total calories
+        const totalCalories = ItemCtrl.getTotalCalories()
+
+        // Add total calories to UI
+        UICtrl.showTotalCalories(totalCalories)
+
+        // Remove all items from UI
+        UICtrl.removeItemList()
+
+        // Hide UL
+        UICtrl.hideList()
+        
         e.preventDefault()
     }
 
